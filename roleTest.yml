@@ -1,0 +1,9 @@
+---
+- name: Test Notepad++ Role
+  hosts: windows
+  tasks:
+    - name: Execute Notepad++ role
+      ansible.builtin.include_role:
+        name: notepad
+      vars:
+        action: "{{ action }}"

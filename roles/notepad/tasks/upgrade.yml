@@ -1,0 +1,16 @@
+---
+- name: Check if Notepad++ installer exists
+  ansible.windows.win_stat:
+    path: "C:/Users/ansibleadmin/software/npp.{{ notepad_installer_version }}.Installer.x64.exe"
+  register: installer_file_exists
+
+- name: Fail if Notepad++ installer is missing
+  fail:
+    msg: "The Notepad++ installer is missing at the specified location: C:/Users/ansibleadmin/software/npp.{{ notepad_installer_version }}.Installer.x64.exe"
+  when: not installer_file_exists.stat.exists
+
+
+- name: Upgrade Notepad++
+  win_package:
+    path: 'C:/Users/ansibleadmin/software/npp.{{ notepad_installer_version }}.Installer.x64.exe'
+    arguments: "/S"

@@ -1,0 +1,30 @@
+---
+- name: Check if Notepad++ is already installed
+  win_shell: |
+          Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Where-Object { $_.DisplayName -like "*Notepad++*" } |Select-Object DisplayName, DisplayVersion, Publisher
+  register: notepad_check
+
+- name: Check if Notepad++ uninstaller exists
+  ansible.windows.win_stat:
+    path: "C:/Program Files/Notepad++/uninstall.exe"
+  register: uninstaller_file_exists
+
+- name: Fail if Notepad++ uninstaller is missing
+  fail:
+    msg: "The Notepad++ uninstaller is missing at the specified location: C:/Program Files/Notepad++/uninstall.exe"
+  when: not uninstaller_file_exists.stat.exists
+
+
+- name: Uninstall Notepad++
+  win_shell: |
+      $UninstallPath = "C:/Program Files/Notepad++/uninstall.exe"
+      if (Test-Path $UninstallPath) {
+      Start-Process $UninstallPath -ArgumentList "/S" -Wait -PassThru
+      }
+  when:
+    - uninstaller_file_exists.stat.exists
+  register: uninstall_result
+
+- name: Display uninstall result
+  debug:
+    var: uninstall_result

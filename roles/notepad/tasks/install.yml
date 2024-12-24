@@ -1,0 +1,25 @@
+---
+- name: Check if Notepad++ installer exists
+  ansible.windows.win_stat:
+    path: "C:/Users/ansibleadmin/software/npp.{{ notepad_installer_version }}.Installer.x64.exe"
+  register: installer_file_exists
+
+- name: Fail if Notepad++ installer is missing
+  fail:
+    msg: "The Notepad++ installer is missing at the specified location: C:/Users/ansibleadmin/software/npp.{{ notepad_installer_version }}.Installer.x64.exe"
+  when: not installer_file_exists.stat.exists
+
+- name: Check if Notepad++ is already installed
+  win_shell: |
+    Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall" | Get-ItemProperty | Where-Object { $_.DisplayName -like "*Notepad++*" } |Select-Object DisplayName, DisplayVersion, Publisher
+  register: notepad_check
+
+- name: Install Notepad++ if not installed
+  win_package:
+    path: 'C:/Users/ansibleadmin/software/npp.{{ notepad_installer_version }}.Installer.x64.exe'
+    arguments: "/S"
+  when: notepad_check.stdout == ''
+  register: install_status
+
+- debug:
+    msg: "Notepad++ installation status: {{ install_status }}"
